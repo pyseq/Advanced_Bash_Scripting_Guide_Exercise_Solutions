@@ -1,0 +1,57 @@
+#!/usr/local/bin/bash
+
+# Sets a variable to the script path name. Note: The exact file path was
+# used because there is no realpath() or 'readlink' on OSX. 
+ 
+fname=~/scripts/easy5/backwords
+
+# Appends a '#' to the end of this script ($fname). The script will overlook 
+# the # while executing. The result is that, 
+# having been appended to the end of the script, any trailing newlines
+# in the original script (i.e. in $fname before '#' is appended) will not
+# be removed in the command substitution below ( i.e. "$(<$fname)"). This
+# has for an overall result the inclusion of these newlines in the
+# standard output.    
+printf "%s" '#' >> $fname
+
+# Counts the bytes of $fname. Note that this includes not only characters, 
+# but also whitespace and newlines
+
+bytes=$(wc -c <$fname)
+
+# $file receives the contents of the script $fname
+
+file="$(<$fname)"
+
+# $bytesl[ess]: Prevents \n (i.e. an empty line) and # from being printed
+# to standard output by echoing less bytes. Note byte = $bytes -- '\n'
+# (of the whole file).  byte = $bytes - 1 -- '#'. byte = $bytes - 2 and
+# $bytes - 3 -- need to look at this more closely, as the value is 
+# strange, depending on number of trailing newlines.     
+
+bytesl=$(( $bytes - 3 ))
+
+# For loop that prints each character in reverse order. Note: Indents and 
+# whitespace, like for the printf in the loop below, are printed, 
+# but are invisible in the  standard output because of the reverse 
+# printing order (i.e. they swtch to the right of printf). Loop begins at
+# $bytesl, echoes corresponding byte in $file, and continues until all but
+# the first byte is printed to standard output.
+  
+for ((i=bytesl; i > 0; i--)); do
+    printf "%s" "${file:i:1}"
+done
+
+# Prints final byte, followed by a trailing newline, to the standard output.
+printf "%s\n" "${file:0:1}"
+
+# Note: Could not remove final line with truncate, since it is not
+# available in the required version on macOS. sed removed the final line of
+# $fname. which is '#'. The script is then redirected, replaces $fname, and
+# given execute permissions
+
+sed '$d' $fname > ~/scripts/easy5/backword
+
+mv -f ~/scripts/easy5/backword $fname
+chmod +x $fname
+

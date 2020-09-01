@@ -1,0 +1,75 @@
+#!/usr/local/bin/bash
+
+# Script spaces the the text off a file based on two parameter: $1 --
+# the file name and $2 -- the spacing value. The 'spacing' value is any whole
+# number, and expresses the desired spacing (empty lines) between non-empty 
+# lines. The script will appear evenly spaced after execution; any lines
+# separating the lines of the file beforehand are replaced by the
+# desired spacing (to avoid situations where e.g. there is a spacing of 5
+# and there are multiple consecutive blank lines in the file).
+# The default value of spacing, if $2 is not supplied, is 1.
+  
+# Tests for the existence of the file. If it does not exist, the script
+# terminates.
+
+if [[ ! -f "$1" ]]; then
+    echo "File does not exist"
+    exit 1
+fi
+
+# Some variables: $last_line is the number of lines in the file, $linen is
+# line number counter in the while loop, and $exp is the regex expression 
+# to help verify whether $2 is of the correct format
+ 
+last_line=$(wc -l < "$1")
+
+linen=1
+
+exp="^[1-9][0-9]*$"
+
+# Tests the format of $2: Whether $2 is in the number range 1, 2, 3, ..., 
+# whether $2 is identical to 0 (not -eq, which causes problems e.g. 00 is
+# valid), and whether $2 is empty / not set. All other options are invalid
+
+if [[ "$2" =~ $exp ]]; then
+    spacing="$2"
+elif [[ "$2" == 0 ]]; then
+    spacing="0"
+elif [[ -z "$2" ]]; then
+    spacing="1"
+else
+    echo "Invalid spacing value. Only acceptable values are whole numbers (that is: 0, 1, 2, ...."
+    exit 1
+fi
+
+# The main logic of the script. while loop reads through each line of file, 
+# that is, $1
+      
+while IFS= read -r line; do 
+    # Tests whether the the current line is the last line. If so, 
+    # outputs the last line, an empty line, and breaks the loop. 
+    if [[ "$linen" -eq "$last_line" ]]; then
+        printf "%s\n\n" "$line"   
+        break
+    fi 
+    
+    # Increments line counter variable
+    (( linen++ ))
+    
+    # The following code is executed for non-empty lines. This is what 
+    # gives the outputted text even spacing (empty lines are ignored)
+    
+    if [[ -n "$line" ]]; then
+        #Echoes the line
+        echo "$line"
+ 
+        # Apperently, this C-style loop is the recommended work-around for 
+        # not being able to use variables in brace expansions         
+        
+        #Prints an emount of empty lines equal to $spacing
+        for (( i=0; i < $spacing; i++ )); do
+            printf "\n"
+        done
+    fi
+done < "$1" 
+

@@ -1,0 +1,34 @@
+#!/usr/local/bin/bash
+
+# Two arrays containing planet names
+
+planets=( "Mercury" "Venus" "Earth" "Mars" "Jupiter" "Saturn" "Uranus" "Neptune" "Pluto" )
+
+planetstr=( "Mercury Venus Earth Mars Jupiter Saturn Uranus Neptune Pluto" )
+
+# Lengths of respective arrays: 'planets' and 'planetstr'
+
+len="${#planets[@]}"
+lenstr="${#planetstr[@]}"
+
+echo "While loop"
+echo "=========="
+
+# While loop for planets array
+(( i=0 )); while (( i < $len )); do
+    echo "${planets[i]}"
+    (( i++ ))
+done
+
+echo
+ 
+echo "Until loop"
+echo "=========="
+
+# Until loop for planetstr array
+(( t=0 )); until (( t == $lenstr )); do
+    echo "${planetstr[t]}"
+    (( t++ ))
+done
+
+

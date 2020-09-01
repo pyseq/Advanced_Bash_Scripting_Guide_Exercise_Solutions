@@ -1,0 +1,10 @@
+#!/usr/local/bin/bash
+
+# Script creates (and echoes to FD 1) a hexadecimal number  using md5, 
+# based on contents of /etc/passwd
+
+checksum_passwd="$(md5 /etc/passwd)"
+
+identifier="${checksum_passwd##*= }"
+
+echo "$identifier" | cut -c 1-6  

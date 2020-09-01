@@ -1,0 +1,96 @@
+#!/usr/local/bin/bash
+
+# If no parameter is passed to the script, or if $1 is not a directory
+# $1 is assigned the value of the current directory
+if [[ ! -d "$1" ]] || [[ -z "$1" ]]; then
+    set -- $PWD
+fi
+    
+# Truncates the name of the directory to use as a filename
+name="${1##*/}"
+
+# Sets nullglob so that the '*' in the for statement in recursive is not
+# a literal when e.g. the directory is empty)
+shopt -s nullglob
+
+# Sets the max path to file or directory length before recursive() displays 
+# it in a truncated form
+maxpthlen=20
+
+# If the directory listing of a specific directory exists, file contents 
+# are replaced. Otherwise, the file is created.
+
+if [[ -e "/tmp/homedirlisting_${name}" ]]; then
+    : > "/tmp/homedirlisting_${name}"
+else
+    touch "/tmp/homedirlisting_${name}"
+fi
+
+# empty() indents the listing depending on the depth of the directory
+# or file. Prints spaces on the same line as subsequent output (i.e.
+# no trailing \n character)
+empty() {
+    printf "\r%*s" "$1"
+}
+
+# The main function of the script
+
+recursive() {
+
+    # Change directory to the directory that is to be looped over
+    cd "$1"
+
+    #Loop over all files / directory in current directory
+    for i in *; do
+        
+        # Indents file / directory
+        empty $2
+        
+        # Sets pth to the path of the current item being looped over
+        pth="$1/$i"
+        
+        #Counts number of characters of $pth
+        charscount="${#pth}" 
+        
+        # Truncates the path to the directory / file name and the directory 
+        # it is stored in.
+        dsplay="${pth/${pth%/*/*}/}"
+
+        # Check if current item is a directory
+        if [[ -d "$1/$i" ]]; then
+            # Adds to spaces to indent for all items within the directory
+            let indent="$2+2"
+            
+            # If charscount variable is greater than maxpthlen variable,
+            # echoes $dsplay (truncated path) of the directory. Special case:
+            # A check for $pth being identical to $dsplay, because the 
+            # original directory and a file / directory could have
+            # combined length greater than $maxpthlen. In such a case, the 
+            # '..' would be misleading (implying that there is 
+            # another, non-existent, directory. 
+            # Otherwise, echoes full path.
+            [[ $charscount -gt $maxpthlen ]] && [[ "$pth" != "$dsplay" ]] &&
+            echo "Directory ${i}: ..${dsplay}" ||  
+            echo "Directory ${i}: $pth"
+            
+            # Indents again so that the following echo command will be 
+            # directly below the directory path
+            empty $2
+            echo "---------"
+            
+            # Calls recursive() to loop over the directory $i
+            recursive "$1/$i" "$indent"
+        else
+            # Similar to the directory path echo. If not a directory, displays
+            # path or truncated path depending on path length.
+            [[ $charscount -gt $maxpthlen ]] && [[ "$pth" != "$dsplay" ]] && 
+            echo "..${dsplay}" \
+            || echo "$pth"
+        # Anything outputted by if is appended to /tmp/homedirlisting
+        fi >> "/tmp/homedirlisting_${name}"        
+    done     
+}
+
+# recursive is called with a parameter passed by user and 0 initial indent.
+recursive $1 0
+
