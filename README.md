@@ -1,1 +1,1 @@
-# Advanced_Bash_Scripting_Guide_Exercises
+# Advanced_Bash_Scripting_Guide_Exercise_Solutions
